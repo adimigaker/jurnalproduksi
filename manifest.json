@@ -2,7 +2,7 @@
   "name": "Jurnal Produksi",
   "short_name": "Jurnal",
   "description": "Aplikasi pencatatan jurnal produksi harian",
-  "start_url": "/jurnalproduksi/",
+  "start_url": "./index.html",
   "scope": "/jurnalproduksi/",
   "display": "standalone",
   "orientation": "portrait",
