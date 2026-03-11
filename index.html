@@ -1,0 +1,1799 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>Jurnal Produksi</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sans: 'DM Sans', sans-serif;
+      --mono: 'DM Mono', monospace;
+      --radius: 14px;
+      --radius-sm: 8px;
+      --radius-lg: 20px;
+      --transition: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Dark theme — default */
+    :root, html.dark {
+      --bg: #0d1117;
+      --bg-card: #161b22;
+      --bg-elevated: #21262d;
+      --bg-input: #0d1117;
+      --border: #30363d;
+      --border-focus: #388bfd;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --text-subtle: #484f58;
+      --accent: #388bfd;
+      --accent-soft: #1c2d44;
+      --accent-text: #79c0ff;
+      --success: #3fb950;
+      --success-soft: #1a2f1e;
+      --danger: #f85149;
+      --danger-soft: #2d1517;
+      --warning: #d29922;
+      --warning-soft: #2d2005;
+      --tab-bg: #0d1117;
+      --tab-border: #21262d;
+      --shadow: 0 8px 32px rgba(0,0,0,0.4);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    html.light {
+      --bg: #f6f8fa;
+      --bg-card: #ffffff;
+      --bg-elevated: #f0f3f6;
+      --bg-input: #f6f8fa;
+      --border: #d0d7de;
+      --border-focus: #0969da;
+      --text: #1f2328;
+      --text-muted: #656d76;
+      --text-subtle: #afb8c1;
+      --accent: #0969da;
+      --accent-soft: #ddf4ff;
+      --accent-text: #0550ae;
+      --success: #1a7f37;
+      --success-soft: #dafbe1;
+      --danger: #cf222e;
+      --danger-soft: #fff0ee;
+      --warning: #9a6700;
+      --warning-soft: #fff8c5;
+      --tab-bg: #ffffff;
+      --tab-border: #d0d7de;
+      --shadow: 0 8px 32px rgba(0,0,0,0.1);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    /* Fallback: ikut sistem kalau belum pernah di-toggle */
+    @media (prefers-color-scheme: light) {
+      html:not(.dark):not(.light) {
+        --bg: #f6f8fa;
+        --bg-card: #ffffff;
+        --bg-elevated: #f0f3f6;
+        --bg-input: #f6f8fa;
+        --border: #d0d7de;
+        --border-focus: #0969da;
+        --text: #1f2328;
+        --text-muted: #656d76;
+        --text-subtle: #afb8c1;
+        --accent: #0969da;
+        --accent-soft: #ddf4ff;
+        --accent-text: #0550ae;
+        --success: #1a7f37;
+        --success-soft: #dafbe1;
+        --danger: #cf222e;
+        --danger-soft: #fff0ee;
+        --warning: #9a6700;
+        --warning-soft: #fff8c5;
+        --tab-bg: #ffffff;
+        --tab-border: #d0d7de;
+        --shadow: 0 8px 32px rgba(0,0,0,0.1);
+        --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+      }
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    #app {
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      max-width: 480px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ── HEADER ── */
+    .app-header {
+      padding: 16px 20px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .header-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .header-date {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+    }
+
+    /* ── PAGES ── */
+    .page { display: none; flex: 1; overflow-y: auto; padding: 16px 20px; padding-bottom: 80px; }
+    .page.active { display: block; animation: fadeSlide 0.2s ease; }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 64px;
+      background: var(--tab-bg);
+      border-top: 1px solid var(--tab-border);
+      display: flex;
+      z-index: 100;
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      cursor: pointer;
+      transition: color var(--transition);
+      color: var(--text-subtle);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .nav-item.active { color: var(--accent); }
+
+    .nav-item svg { width: 22px; height: 22px; stroke-width: 1.8; }
+
+    .nav-indicator {
+      position: absolute;
+      top: 0; height: 2px;
+      background: var(--accent);
+      border-radius: 0 0 2px 2px;
+      width: 33.333%;
+      transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ── THEME TOGGLE ── */
+    .theme-toggle {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    .theme-toggle svg { width: 16px; height: 16px; stroke-width: 1.8; transition: opacity 0.15s; }
+    .icon-sun { display: none; }
+    .icon-moon { display: block; }
+    html.light .icon-sun { display: block; }
+    html.light .icon-moon { display: none; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .reloading svg { animation: spin 0.6s linear; }
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      gap: 16px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .empty-state svg { opacity: 0.3; }
+    .empty-state p { font-size: 14px; line-height: 1.5; }
+
+    /* ── FAB / ADD BUTTON ── */
+    .fab {
+      position: fixed;
+      bottom: 80px;
+      right: max(20px, calc(50% - 220px));
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(56,139,253,0.4);
+      transition: transform var(--transition), box-shadow var(--transition);
+      z-index: 90;
+    }
+
+    .fab:active { transform: scale(0.93); }
+    .fab svg { width: 24px; height: 24px; stroke-width: 2.2; }
+
+    /* ── PRODUCT CARD ── */
+    .product-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .product-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .product-name {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+    }
+
+    .product-date {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+    }
+
+    .product-cols {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .product-cols.single { grid-template-columns: 1fr; }
+    .product-cols.double { grid-template-columns: 1fr 1fr; }
+
+    .col-section { /* wrapper tiap kolom */ }
+
+    /* Di split mode, semua elemen dalam kolom lebih compact */
+    .product-cols.double .container-row {
+      padding: 6px 7px;
+      gap: 3px;
+    }
+
+    .product-cols.double .container-row-bottom {
+      gap: 3px;
+    }
+
+    .product-cols.double .container-input {
+      font-size: 15px;
+      padding: 5px 4px;
+    }
+
+    .product-cols.double .mult-label {
+      font-size: 10px;
+    }
+
+    .product-cols.double .mult-step-btn {
+      width: 28px;
+      height: 30px;
+      font-size: 15px;
+    }
+
+    .product-cols.double .mult-step-input {
+      width: 30px;
+      height: 30px;
+      font-size: 12px;
+    }
+
+    .product-cols.double .mult-result {
+      font-size: 10px;
+      min-width: 0;
+    }
+
+    .product-cols.double .remove-btn {
+      padding: 4px 3px;
+    }
+    .product-cols.double .remove-btn svg { width: 13px; height: 13px; }
+
+    .product-cols.double .add-container-btn {
+      font-size: 11px;
+      padding: 7px 4px;
+      gap: 3px;
+    }
+    .product-cols.double .add-container-btn svg { width: 11px; height: 11px; }
+
+    .product-cols.double .col-label {
+      font-size: 10px;
+      letter-spacing: 0.3px;
+    }
+
+    .product-cols.double .target-badge {
+      font-size: 9px;
+      padding: 1px 4px;
+    }
+
+    .product-cols.double .edit-target-btn svg {
+      width: 10px; height: 10px;
+    }
+
+    .col-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .col-label span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .target-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      background: var(--accent-soft);
+      color: var(--accent-text);
+      padding: 1px 6px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    /* ── KONTAINER ── */
+    .container-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .container-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+    }
+
+    .container-row-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .container-row-bottom {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .container-input {
+      flex: 1;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 700;
+      padding: 6px 10px;
+      transition: border-color var(--transition);
+      text-align: center;
+      min-width: 0;
+    }
+
+    .container-input:focus {
+      outline: none;
+      border-color: var(--border-focus);
+    }
+
+    /* Label "×" pemisah */
+    .mult-label {
+      font-size: 12px;
+      color: var(--text-subtle);
+      flex-shrink: 0;
+    }
+
+    /* Stepper: [−] [input] [+] */
+    .mult-stepper {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .mult-step-btn {
+      background: var(--bg-card);
+      border: none;
+      color: var(--text-muted);
+      width: 36px; height: 36px;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition), color var(--transition);
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mult-step-btn:active { background: var(--accent-soft); color: var(--accent); }
+
+    .mult-step-input {
+      width: 44px;
+      background: var(--bg-input);
+      border: none;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      padding: 4px 2px;
+      height: 36px;
+      -moz-appearance: textfield;
+    }
+    .mult-step-input::-webkit-inner-spin-button,
+    .mult-step-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .mult-step-input:focus { outline: none; background: var(--accent-soft); }
+
+    /* "= NNN unit" hasil kali */
+    .mult-result {
+      font-size: 12px;
+      font-family: var(--mono);
+      color: var(--text-muted);
+      flex: 1;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .remove-btn {
+      background: none;
+      border: none;
+      color: var(--text-subtle);
+      cursor: pointer;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      border-radius: var(--radius-sm);
+      transition: color var(--transition), background var(--transition);
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .remove-btn:active { color: var(--danger); background: var(--danger-soft); }
+    .remove-btn svg { width: 16px; height: 16px; stroke-width: 2; }
+
+    .add-container-btn {
+      width: 100%;
+      background: none;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-size: 13px;
+      font-family: var(--sans);
+      padding: 10px;
+      cursor: pointer;
+      transition: all var(--transition);
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .add-container-btn:active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+    .add-container-btn svg { width: 14px; height: 14px; }
+
+    /* Edit target inline */
+    .col-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .col-label-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .edit-target-btn {
+      background: none;
+      border: none;
+      color: var(--text-subtle);
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      transition: color var(--transition);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .edit-target-btn:active { color: var(--accent); }
+    .edit-target-btn svg { width: 11px; height: 11px; stroke-width: 2; }
+
+    .target-edit-wrap {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .target-edit-wrap.visible { display: flex; }
+
+    .target-edit-input {
+      width: 80px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-focus);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 5px 8px;
+      text-align: center;
+    }
+    .target-edit-input:focus { outline: none; }
+
+    .target-save-btn {
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-family: var(--sans);
+    }
+    .summary-box {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-top: 14px;
+      border: 1px solid var(--border);
+    }
+
+    .summary-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .summary-grid { display: flex; flex-direction: column; gap: 6px; }
+
+    .summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+
+    .summary-label { color: var(--text-muted); }
+    .summary-val { font-family: var(--mono); font-weight: 500; }
+
+    .summary-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+    .summary-total { font-weight: 700; font-size: 14px; }
+
+    .diff-positive { color: var(--success); }
+    .diff-negative { color: var(--danger); }
+    .diff-zero { color: var(--text-muted); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: flex;
+      align-items: flex-end;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal-sheet {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      padding: 20px 20px 36px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      max-height: 90dvh;
+      overflow-y: auto;
+    }
+
+    .modal-overlay.open .modal-sheet {
+      transform: translateY(0);
+    }
+
+    .modal-handle {
+      width: 40px; height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 auto 20px;
+    }
+
+    .modal-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      letter-spacing: -0.3px;
+    }
+
+    .field-group { margin-bottom: 16px; }
+
+    .field-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .field-input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      padding: 11px 13px;
+      transition: border-color var(--transition);
+    }
+
+    .field-input:focus { outline: none; border-color: var(--border-focus); }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 14px;
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      transition: border-color var(--transition);
+    }
+
+    .checkbox-row:hover { border-color: var(--accent); }
+
+    .checkbox-custom {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+
+    .checkbox-row.checked .checkbox-custom {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .checkbox-custom svg { width: 12px; height: 12px; opacity: 0; transition: opacity var(--transition); }
+    .checkbox-row.checked .checkbox-custom svg { opacity: 1; }
+
+    .checkbox-text { font-size: 14px; font-weight: 500; }
+    .checkbox-desc { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+    .sub-targets {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.25s ease, opacity 0.2s ease;
+      opacity: 0;
+    }
+
+    .sub-targets.visible { max-height: 200px; opacity: 1; }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 13px;
+      border-radius: var(--radius-sm);
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      border: 1px solid transparent;
+    }
+
+    .btn-ghost {
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      border-color: var(--border);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(56,139,253,0.3);
+    }
+
+    .btn-primary:active { transform: scale(0.97); }
+
+    /* ── RIWAYAT ── */
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .filter-row::-webkit-scrollbar { display: none; }
+
+    .filter-chip {
+      flex-shrink: 0;
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-muted);
+      transition: all var(--transition);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .filter-chip.active {
+      background: var(--accent-soft);
+      color: var(--accent-text);
+      border-color: var(--accent);
+    }
+
+    .custom-range {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .custom-range.visible { display: grid; }
+
+    .riwayat-day-group { margin-bottom: 18px; }
+
+    .riwayat-day-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      font-family: var(--mono);
+    }
+
+    /* ── RIWAYAT EXPANDABLE ── */
+    .riwayat-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 6px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color var(--transition);
+    }
+    .riwayat-item:hover { border-color: var(--accent); }
+
+    .riwayat-item-header {
+      padding: 11px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .riwayat-name { font-size: 14px; font-weight: 500; }
+    .riwayat-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .riwayat-total { font-family: var(--mono); font-size: 15px; font-weight: 600; }
+
+    .riwayat-chevron {
+      color: var(--text-subtle);
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+    .riwayat-chevron svg { width: 14px; height: 14px; stroke-width: 2; display: block; }
+    .riwayat-item.expanded .riwayat-chevron { transform: rotate(180deg); }
+
+    .riwayat-detail {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+    .riwayat-item.expanded .riwayat-detail { max-height: 600px; }
+    .riwayat-detail-inner {
+      padding: 0 14px 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── KALENDER ── */
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .cal-nav-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      cursor: pointer;
+      width: 34px; height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+    }
+    .cal-nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .cal-nav-btn svg { width: 16px; height: 16px; stroke-width: 2; }
+
+    .cal-month-year { font-size: 16px; font-weight: 700; }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .cal-dow {
+      text-align: center;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      padding: 4px 0;
+    }
+
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      position: relative;
+      transition: background var(--transition);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .cal-day:hover { background: var(--bg-elevated); }
+    .cal-day.today { font-weight: 700; color: var(--accent); }
+
+    .cal-day.today::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .cal-day.has-data { }
+
+    .cal-day-dot {
+      position: absolute;
+      bottom: 3px;
+      display: flex;
+      gap: 2px;
+    }
+
+    .dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .cal-day.other-month { opacity: 0.3; }
+    .cal-day.selected { background: var(--accent-soft); color: var(--accent-text); }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .section-title { font-size: 16px; font-weight: 700; }
+
+    .delete-product-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-subtle);
+      padding: 4px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      transition: all var(--transition);
+    }
+    .delete-product-btn:hover { color: var(--danger); background: var(--danger-soft); }
+    .delete-product-btn svg { width: 16px; height: 16px; stroke-width: 1.8; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- Header -->
+  <header class="app-header">
+    <div>
+      <div class="header-title">Jurnal Produksi</div>
+      <div class="header-date" id="headerDate"></div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="theme-toggle" id="reloadBtn" title="Reload">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      </button>
+      <button class="theme-toggle" id="themeToggle" title="Ganti tema">
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Pages -->
+  <div class="page active" id="page-beranda"></div>
+  <div class="page" id="page-riwayat"></div>
+  <div class="page" id="page-kalender"></div>
+
+  <!-- FAB -->
+  <button class="fab" id="fabBtn" title="Tambah Produk">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <div class="nav-indicator" id="navIndicator"></div>
+    <div class="nav-item active" data-tab="beranda">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Beranda
+    </div>
+    <div class="nav-item" data-tab="riwayat">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Riwayat
+    </div>
+    <div class="nav-item" data-tab="kalender">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Kalender
+    </div>
+  </nav>
+</div>
+
+<!-- Modal Tambah Produk -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Tambah Produk</div>
+
+    <div class="field-group">
+      <label class="field-label">Tanggal</label>
+      <input class="field-input" type="date" id="inputTanggal" />
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Nama Produk</label>
+      <input class="field-input" type="text" id="inputNama" placeholder="Contoh: Komponen A, Pipa PVC..." />
+    </div>
+
+    <div class="field-group">
+      <div class="checkbox-row" id="checkboxRow">
+        <div class="checkbox-custom">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div>
+          <div class="checkbox-text">Bagi Dua Porsi</div>
+          <div class="checkbox-desc">Porsi Besar &amp; Porsi Kecil dengan target masing-masing</div>
+        </div>
+      </div>
+      <div class="sub-targets" id="subTargets">
+        <div>
+          <label class="field-label">Target Porsi Kecil</label>
+          <input class="field-input" type="number" id="targetKecil" placeholder="0" min="0" />
+        </div>
+        <div>
+          <label class="field-label">Target Porsi Besar</label>
+          <input class="field-input" type="number" id="targetBesar" placeholder="0" min="0" />
+        </div>
+      </div>
+      <div id="singleTargetWrap" style="margin-top:10px">
+        <label class="field-label">Target Produksi</label>
+        <input class="field-input" type="number" id="targetSingle" placeholder="0" min="0" />
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="btnBatal">Batal</button>
+      <button class="btn btn-primary" id="btnOk">Tambahkan</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ── UTILS ──
+const $ = (s, ctx = document) => ctx.querySelector(s);
+const $$ = (s, ctx = document) => [...ctx.querySelectorAll(s)];
+const today = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+};
+const fmt = (d) => new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+const fmtShort = (d) => new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+const fmtDay = (d) => new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' });
+
+// ── STORAGE ──
+const DB = {
+  get: () => JSON.parse(localStorage.getItem('cp_data') || '[]'),
+  save: (data) => localStorage.setItem('cp_data', JSON.stringify(data)),
+  addProduct: (p) => { const d = DB.get(); d.push(p); DB.save(d); },
+  updateProduct: (id, updated) => {
+    const d = DB.get();
+    const i = d.findIndex(x => x.id === id);
+    if (i >= 0) { d[i] = { ...d[i], ...updated }; DB.save(d); }
+  },
+  deleteProduct: (id) => { DB.save(DB.get().filter(x => x.id !== id)); },
+  getByDate: (date) => DB.get().filter(x => x.date === date),
+  getByRange: (from, to) => DB.get().filter(x => x.date >= from && x.date <= to),
+};
+
+// ── STATE ──
+let currentTab = 'beranda';
+let splitMode = false;
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let riwayatFilter = '7d';
+let riwayatFrom = '', riwayatTo = '';
+
+// ── THEME TOGGLE ──
+(function() {
+  const saved = localStorage.getItem('jp_theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = saved || (prefersDark ? 'dark' : 'light');
+  document.documentElement.classList.remove('dark','light');
+  document.documentElement.classList.add(theme);
+})();
+
+$('#headerDate').textContent = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+
+$('#themeToggle').addEventListener('click', () => {
+  const isLight = document.documentElement.classList.contains('light');
+  document.documentElement.classList.remove('light', 'dark');
+  document.documentElement.classList.add(isLight ? 'dark' : 'light');
+  localStorage.setItem('jp_theme', isLight ? 'dark' : 'light');
+});
+
+// ── REFRESH / AUTO-DATE ──
+let _lastDate = today();
+
+function refreshApp() {
+  _lastDate = today();
+  $('#headerDate').textContent = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+  const btn = $('#reloadBtn');
+  btn.classList.add('reloading');
+  setTimeout(() => btn.classList.remove('reloading'), 650);
+  if (currentTab === 'beranda') renderBeranda();
+  if (currentTab === 'riwayat') renderRiwayat();
+  if (currentTab === 'kalender') renderKalender();
+}
+
+// Tombol reload manual
+$('#reloadBtn').addEventListener('click', refreshApp);
+
+// Reload otomatis saat app kembali ke foreground (tab aktif / PWA di-buka lagi)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && today() !== _lastDate) refreshApp();
+});
+
+// Timer tepat tengah malam untuk ganti tanggal otomatis
+function scheduleMidnight() {
+  const now = new Date();
+  const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) - now;
+  setTimeout(() => { refreshApp(); scheduleMidnight(); }, msUntilMidnight + 500);
+}
+scheduleMidnight();
+
+// ── NAV ──
+function setTab(tab) {
+  currentTab = tab;
+  $$('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.tab === tab));
+  $$('.page').forEach(el => el.classList.remove('active'));
+  $(`#page-${tab}`).classList.add('active');
+  const tabs = ['beranda', 'riwayat', 'kalender'];
+  const idx = tabs.indexOf(tab);
+  $('#navIndicator').style.left = (idx * 33.333) + '%';
+  $('#fabBtn').style.display = tab === 'beranda' ? 'flex' : 'none';
+  if (tab === 'beranda') renderBeranda();
+  if (tab === 'riwayat') renderRiwayat();
+  if (tab === 'kalender') renderKalender();
+}
+
+$$('.nav-item').forEach(el => {
+  el.addEventListener('click', () => setTab(el.dataset.tab));
+});
+
+// ── BERANDA ──
+function renderBeranda() {
+  const pg = $('#page-beranda');
+  const products = DB.getByDate(today());
+
+  if (products.length === 0) {
+    pg.innerHTML = `
+      <div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        <p>Belum ada data hari ini.<br/>Ketuk <strong>+</strong> untuk menambahkan produk.</p>
+      </div>`;
+    return;
+  }
+
+  pg.innerHTML = `<div class="section-header"><span class="section-title">Hari Ini</span><span style="font-size:12px;color:var(--text-muted);font-family:var(--mono)">${fmtShort(today())}</span></div>` +
+    products.map(p => renderProductCard(p)).join('');
+
+  attachCardEvents(pg);
+}
+
+function renderProductCard(p) {
+  const isSplit = p.split;
+  const colClass = isSplit ? 'double' : 'single';
+
+  const renderCol = (label, target, containers, colKey) => {
+    const rows = containers.map((c, i) => {
+      const result = (c.val || 0) * (c.mult || 1);
+      return `
+      <div class="container-row">
+        <div class="container-row-top">
+          <input class="container-input" type="number" value="${c.val || ''}" min="0"
+            data-pid="${p.id}" data-col="${colKey}" data-cidx="${i}" placeholder="0" />
+        </div>
+        <div class="container-row-bottom">
+          <span class="mult-label">×</span>
+          <div class="mult-stepper">
+            <button class="mult-step-btn mult-minus" data-pid="${p.id}" data-col="${colKey}" data-cidx="${i}">−</button>
+            <input class="mult-step-input" type="number" value="${c.mult || 1}" min="1" max="999"
+              data-pid="${p.id}" data-col="${colKey}" data-cidx="${i}" />
+            <button class="mult-step-btn mult-plus" data-pid="${p.id}" data-col="${colKey}" data-cidx="${i}">+</button>
+          </div>
+          <span class="mult-result" data-res="${p.id}-${colKey}-${i}">= ${result}</span>
+          <button class="remove-btn" data-pid="${p.id}" data-col="${colKey}" data-cidx="${i}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+
+    const editId = `${p.id}-${colKey}`;
+    return `
+      <div class="col-section">
+        <div class="col-label">
+          <div class="col-label-left">
+            <span>${label}</span>
+            <span class="target-badge" id="badge-${editId}">Target: ${target || 0}</span>
+            <button class="edit-target-btn" data-pid="${p.id}" data-col="${colKey}" title="Edit target">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="target-edit-wrap" id="tedit-${editId}">
+          <input class="target-edit-input" type="number" min="0" placeholder="${target || 0}"
+            data-pid="${p.id}" data-col="${colKey}" id="tinput-${editId}" />
+          <button class="target-save-btn" data-pid="${p.id}" data-col="${colKey}">Simpan</button>
+        </div>
+        <div class="container-list" data-pid="${p.id}" data-col="${colKey}">${rows}</div>
+        <button class="add-container-btn" data-pid="${p.id}" data-col="${colKey}">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Tambah Kontainer
+        </button>
+      </div>`;
+  };
+
+  const summaryHTML = renderSummary(p);
+
+  return `
+    <div class="product-card" data-pid="${p.id}">
+      <div class="product-header">
+        <div>
+          <div class="product-name">${p.name}</div>
+          <div class="product-date">${fmtShort(p.date)}</div>
+        </div>
+        <button class="delete-product-btn" data-pid="${p.id}" title="Hapus Produk">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </div>
+      <div class="product-cols ${colClass}">
+        ${isSplit
+          ? renderCol('Porsi Kecil', p.targetKecil, p.containers.kecil, 'kecil') +
+            renderCol('Porsi Besar', p.targetBesar, p.containers.besar, 'besar')
+          : renderCol('Produksi', p.targetSingle, p.containers.single, 'single')}
+      </div>
+      ${summaryHTML}
+    </div>`;
+}
+
+function renderSummary(p) {
+  const isSplit = p.split;
+
+  const calcCol = (containers, target) => {
+    let total = 0;
+    const lines = containers.map(c => {
+      const sub = (c.val || 0) * (c.mult || 1);
+      total += sub;
+      return `<div class="summary-row">
+        <span class="summary-label">${c.val || 0} × ${c.mult} kontainer</span>
+        <span class="summary-val">${sub} unit</span>
+      </div>`;
+    }).join('');
+    const diff = total - (target || 0);
+    const diffClass = diff > 0 ? 'diff-positive' : diff < 0 ? 'diff-negative' : 'diff-zero';
+    const diffLabel = diff > 0 ? `+${diff}` : `${diff}`;
+    return { lines, total, diff, diffClass, diffLabel };
+  };
+
+  if (!isSplit) {
+    const { lines, total, diffClass, diffLabel } = calcCol(p.containers.single, p.targetSingle);
+    return `<div class="summary-box">
+      <div class="summary-title">Ringkasan</div>
+      <div class="summary-grid">
+        ${lines}
+        <div class="summary-divider"></div>
+        <div class="summary-row summary-total">
+          <span>Total</span><span class="summary-val">${total} unit</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">vs Target (${p.targetSingle || 0})</span>
+          <span class="summary-val ${diffClass}">${diffLabel}</span>
+        </div>
+      </div>
+    </div>`;
+  } else {
+    const besar = calcCol(p.containers.besar, p.targetBesar);
+    const kecil = calcCol(p.containers.kecil, p.targetKecil);
+    const grandTotal = besar.total + kecil.total;
+    const totalTarget = (p.targetBesar || 0) + (p.targetKecil || 0);
+    const grandDiff = grandTotal - totalTarget;
+    const grandClass = grandDiff > 0 ? 'diff-positive' : grandDiff < 0 ? 'diff-negative' : 'diff-zero';
+    return `<div class="summary-box">
+      <div class="summary-title">Ringkasan</div>
+      <div class="summary-grid">
+        <div class="summary-row"><span class="summary-label" style="font-weight:600">Porsi Besar</span><span></span></div>
+        ${besar.lines}
+        <div class="summary-row">
+          <span class="summary-label">Subtotal vs Target (${p.targetBesar || 0})</span>
+          <span class="summary-val ${besar.diffClass}">${besar.total} (${besar.diffLabel})</span>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-row"><span class="summary-label" style="font-weight:600">Porsi Kecil</span><span></span></div>
+        ${kecil.lines}
+        <div class="summary-row">
+          <span class="summary-label">Subtotal vs Target (${p.targetKecil || 0})</span>
+          <span class="summary-val ${kecil.diffClass}">${kecil.total} (${kecil.diffLabel})</span>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-row summary-total">
+          <span>Grand Total</span><span class="summary-val">${grandTotal} unit</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">vs Total Target (${totalTarget})</span>
+          <span class="summary-val ${grandClass}">${grandDiff >= 0 ? '+' + grandDiff : grandDiff}</span>
+        </div>
+      </div>
+    </div>`;
+  }
+}
+
+function attachCardEvents(ctx) {
+  // Val input change → save
+  $$(`.container-input`, ctx).forEach(input => {
+    input.addEventListener('input', () => {
+      const pid = input.dataset.pid, col = input.dataset.col, idx = parseInt(input.dataset.cidx);
+      const data = DB.get();
+      const p = data.find(x => x.id === pid);
+      if (!p) return;
+      p.containers[col][idx].val = parseInt(input.value) || 0;
+      DB.save(data);
+      updateResult(pid, col, idx, p.containers[col][idx]);
+      refreshSummary(pid);
+    });
+  });
+
+  // Mult stepper input change
+  $$('.mult-step-input', ctx).forEach(input => {
+    input.addEventListener('input', () => {
+      const pid = input.dataset.pid, col = input.dataset.col, idx = parseInt(input.dataset.cidx);
+      const val = Math.max(1, parseInt(input.value) || 1);
+      input.value = val;
+      saveMult(pid, col, idx, val);
+    });
+  });
+
+  // Minus btn
+  $$('.mult-minus', ctx).forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pid = btn.dataset.pid, col = btn.dataset.col, idx = parseInt(btn.dataset.cidx);
+      const inp = btn.nextElementSibling;
+      const val = Math.max(1, parseInt(inp.value) - 1);
+      inp.value = val;
+      saveMult(pid, col, idx, val);
+    });
+  });
+
+  // Plus btn
+  $$('.mult-plus', ctx).forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pid = btn.dataset.pid, col = btn.dataset.col, idx = parseInt(btn.dataset.cidx);
+      const inp = btn.previousElementSibling;
+      const val = parseInt(inp.value) + 1;
+      inp.value = val;
+      saveMult(pid, col, idx, val);
+    });
+  });
+
+  // Remove container
+  $$('.remove-btn', ctx).forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pid = btn.dataset.pid, col = btn.dataset.col, idx = parseInt(btn.dataset.cidx);
+      const data = DB.get();
+      const p = data.find(x => x.id === pid);
+      if (!p || p.containers[col].length <= 1) return;
+      p.containers[col].splice(idx, 1);
+      DB.save(data);
+      renderBeranda();
+    });
+  });
+
+  // Add container
+  $$('.add-container-btn', ctx).forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pid = btn.dataset.pid, col = btn.dataset.col;
+      const data = DB.get();
+      const p = data.find(x => x.id === pid);
+      if (!p) return;
+      p.containers[col].push({ val: 0, mult: 1 });
+      DB.save(data);
+      renderBeranda();
+    });
+  });
+
+  // Edit target toggle
+  $$('.edit-target-btn', ctx).forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pid = btn.dataset.pid, col = btn.dataset.col;
+      const editId = `${pid}-${col}`;
+      const wrap = document.getElementById(`tedit-${editId}`);
+      const inp = document.getElementById(`tinput-${editId}`);
+      if (!wrap) return;
+      const isVisible = wrap.classList.contains('visible');
+      wrap.classList.toggle('visible', !isVisible);
+      if (!isVisible && inp) {
+        const data = DB.get();
+        const p = data.find(x => x.id === pid);
+        if (p) {
+          const cur = col === 'single' ? p.targetSingle : col === 'besar' ? p.targetBesar : p.targetKecil;
+          inp.value = cur || '';
+          inp.focus();
+        }
+      }
+    });
+  });
+
+  // Save target
+  $$('.target-save-btn', ctx).forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pid = btn.dataset.pid, col = btn.dataset.col;
+      const editId = `${pid}-${col}`;
+      const inp = document.getElementById(`tinput-${editId}`);
+      const wrap = document.getElementById(`tedit-${editId}`);
+      const badge = document.getElementById(`badge-${editId}`);
+      if (!inp) return;
+      const newVal = parseInt(inp.value) || 0;
+      const data = DB.get();
+      const p = data.find(x => x.id === pid);
+      if (p) {
+        if (col === 'single') p.targetSingle = newVal;
+        else if (col === 'besar') p.targetBesar = newVal;
+        else if (col === 'kecil') p.targetKecil = newVal;
+        DB.save(data);
+        if (badge) badge.textContent = `Target: ${newVal}`;
+        if (wrap) wrap.classList.remove('visible');
+        refreshSummary(pid);
+      }
+    });
+  });
+
+  // Delete product
+  $$('.delete-product-btn', ctx).forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (confirm('Hapus produk ini?')) {
+        DB.deleteProduct(btn.dataset.pid);
+        renderBeranda();
+      }
+    });
+  });
+}
+
+function saveMult(pid, col, idx, val) {
+  const data = DB.get();
+  const p = data.find(x => x.id === pid);
+  if (!p) return;
+  p.containers[col][idx].mult = val;
+  DB.save(data);
+  updateResult(pid, col, idx, p.containers[col][idx]);
+  refreshSummary(pid);
+}
+
+function updateResult(pid, col, idx, c) {
+  const res = document.querySelector(`[data-res="${pid}-${col}-${idx}"]`);
+  if (res) res.textContent = `= ${(c.val || 0) * (c.mult || 1)}`;
+}
+
+function refreshSummary(pid) {
+  const data = DB.get();
+  const p = data.find(x => x.id === pid);
+  if (!p) return;
+  const card = document.querySelector(`.product-card[data-pid="${pid}"]`);
+  if (!card) return;
+  const existing = card.querySelector('.summary-box');
+  if (existing) existing.remove();
+  card.insertAdjacentHTML('beforeend', renderSummary(p));
+}
+
+// ── MODAL ──
+$('#fabBtn').addEventListener('click', () => {
+  $('#inputTanggal').value = today();
+  $('#inputNama').value = '';
+  $('#targetSingle').value = '';
+  $('#targetBesar').value = '';
+  $('#targetKecil').value = '';
+  splitMode = false;
+  $('#checkboxRow').classList.remove('checked');
+  $('#subTargets').classList.remove('visible');
+  $('#singleTargetWrap').style.display = 'block';
+  $('#modalOverlay').classList.add('open');
+});
+
+$('#btnBatal').addEventListener('click', closeModal);
+$('#modalOverlay').addEventListener('click', (e) => { if (e.target === $('#modalOverlay')) closeModal(); });
+
+function closeModal() { $('#modalOverlay').classList.remove('open'); }
+
+$('#checkboxRow').addEventListener('click', () => {
+  splitMode = !splitMode;
+  $('#checkboxRow').classList.toggle('checked', splitMode);
+  $('#subTargets').classList.toggle('visible', splitMode);
+  $('#singleTargetWrap').style.display = splitMode ? 'none' : 'block';
+});
+
+$('#btnOk').addEventListener('click', () => {
+  const name = $('#inputNama').value.trim();
+  const date = $('#inputTanggal').value;
+  if (!name || !date) { alert('Nama produk dan tanggal wajib diisi.'); return; }
+
+  const product = {
+    id: Date.now().toString(),
+    name, date,
+    split: splitMode,
+    targetSingle: parseInt($('#targetSingle').value) || 0,
+    targetBesar: parseInt($('#targetBesar').value) || 0,
+    targetKecil: parseInt($('#targetKecil').value) || 0,
+    containers: splitMode
+      ? { besar: [{ val: 0, mult: 1 }], kecil: [{ val: 0, mult: 1 }] }
+      : { single: [{ val: 0, mult: 1 }] }
+  };
+
+  DB.addProduct(product);
+  closeModal();
+  renderBeranda();
+});
+
+// ── RIWAYAT ──
+function renderRiwayat() {
+  const pg = $('#page-riwayat');
+
+  const getRange = () => {
+    const t = today();
+    if (riwayatFilter === '7d') {
+      const d = new Date(); d.setDate(d.getDate() - 6);
+      return [d.toISOString().split('T')[0], t];
+    }
+    if (riwayatFilter === '30d') {
+      const d = new Date(); d.setDate(d.getDate() - 29);
+      return [d.toISOString().split('T')[0], t];
+    }
+    if (riwayatFilter === 'custom') return [riwayatFrom || t, riwayatTo || t];
+    return [t, t];
+  };
+
+  const [from, to] = getRange();
+  const data = DB.getByRange(from, to);
+
+  // Group by date
+  const grouped = {};
+  data.forEach(p => {
+    if (!grouped[p.date]) grouped[p.date] = [];
+    grouped[p.date].push(p);
+  });
+  const dates = Object.keys(grouped).sort().reverse();
+
+  const customVisible = riwayatFilter === 'custom' ? 'visible' : '';
+
+  pg.innerHTML = `
+    <div class="filter-row">
+      <div class="filter-chip ${riwayatFilter === '7d' ? 'active' : ''}" data-f="7d">7 Hari</div>
+      <div class="filter-chip ${riwayatFilter === '30d' ? 'active' : ''}" data-f="30d">Bulan Ini</div>
+      <div class="filter-chip ${riwayatFilter === 'custom' ? 'active' : ''}" data-f="custom">Custom</div>
+    </div>
+    <div class="custom-range ${customVisible}" id="customRange">
+      <div>
+        <label class="field-label">Dari</label>
+        <input class="field-input" type="date" id="rangeFrom" value="${riwayatFrom}" />
+      </div>
+      <div>
+        <label class="field-label">Sampai</label>
+        <input class="field-input" type="date" id="rangeTo" value="${riwayatTo}" />
+      </div>
+    </div>
+    ${dates.length === 0
+      ? `<div class="empty-state" style="min-height:200px"><p>Tidak ada data di rentang ini.</p></div>`
+      : dates.map(date => `
+        <div class="riwayat-day-group">
+          <div class="riwayat-day-label">${fmtDay(date)}</div>
+          ${grouped[date].map(p => {
+            const total = p.split
+              ? p.containers.besar.reduce((s, c) => s + (c.val||0) * (c.mult||1), 0) +
+                p.containers.kecil.reduce((s, c) => s + (c.val||0) * (c.mult||1), 0)
+              : p.containers.single.reduce((s, c) => s + (c.val||0) * (c.mult||1), 0);
+            const target = p.split ? (p.targetBesar || 0) + (p.targetKecil || 0) : (p.targetSingle || 0);
+            const diff = total - target;
+            const dClass = diff > 0 ? 'diff-positive' : diff < 0 ? 'diff-negative' : 'diff-zero';
+            return `<div class="riwayat-item" data-rid="${p.id}">
+              <div class="riwayat-item-header">
+                <div>
+                  <div class="riwayat-name">${p.name}</div>
+                  <div class="riwayat-meta">${p.split ? 'Porsi Besar + Kecil' : 'Single'} · Target ${target}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <div style="text-align:right">
+                    <div class="riwayat-total">${total}</div>
+                    <div style="font-size:11px;font-family:var(--mono)" class="${dClass}">${diff >= 0 ? '+' + diff : diff}</div>
+                  </div>
+                  <div class="riwayat-chevron">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </div>
+                </div>
+              </div>
+              <div class="riwayat-detail">
+                <div class="riwayat-detail-inner">${renderSummary(p)}</div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>`).join('')}`;
+
+  // Expand/collapse
+  $$('.riwayat-item', pg).forEach(item => {
+    item.querySelector('.riwayat-item-header').addEventListener('click', () => {
+      item.classList.toggle('expanded');
+    });
+  });
+
+  $$('.filter-chip', pg).forEach(chip => {
+    chip.addEventListener('click', () => {
+      riwayatFilter = chip.dataset.f;
+      renderRiwayat();
+    });
+  });
+
+  const fromEl = $('#rangeFrom'), toEl = $('#rangeTo');
+  if (fromEl) fromEl.addEventListener('change', () => { riwayatFrom = fromEl.value; renderRiwayat(); });
+  if (toEl) toEl.addEventListener('change', () => { riwayatTo = toEl.value; renderRiwayat(); });
+}
+
+// ── KALENDER ──
+function renderKalender() {
+  const pg = $('#page-kalender');
+  const allData = DB.get();
+  const dateDots = {};
+  allData.forEach(p => { dateDots[p.date] = true; });
+
+  const DAYS = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+  const now = new Date();
+  const todayStr = today();
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay = new Date(calYear, calMonth + 1, 0);
+  const startDow = firstDay.getDay();
+  const monthName = firstDay.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+
+  let cells = '';
+  // Pad start
+  for (let i = 0; i < startDow; i++) {
+    const d = new Date(calYear, calMonth, -startDow + i + 1);
+    const ds = d.toISOString().split('T')[0];
+    cells += `<div class="cal-day other-month" data-date="${ds}"><span>${d.getDate()}</span></div>`;
+  }
+  // Days
+  for (let i = 1; i <= lastDay.getDate(); i++) {
+    const d = new Date(calYear, calMonth, i);
+    const ds = d.toISOString().split('T')[0];
+    const isToday = ds === todayStr;
+    const hasDot = dateDots[ds];
+    cells += `<div class="cal-day${isToday ? ' today' : ''}${hasDot ? ' has-data' : ''}" data-date="${ds}">
+      <span>${i}</span>
+      ${hasDot ? '<div class="cal-day-dot"><div class="dot"></div></div>' : ''}
+    </div>`;
+  }
+
+  pg.innerHTML = `
+    <div class="calendar-header">
+      <button class="cal-nav-btn" id="calPrev">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="cal-month-year">${monthName}</div>
+      <button class="cal-nav-btn" id="calNext">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <div class="cal-grid">
+      ${DAYS.map(d => `<div class="cal-dow">${d}</div>`).join('')}
+      ${cells}
+    </div>
+    <div id="calDetail" style="margin-top:18px"></div>`;
+
+  $('#calPrev').addEventListener('click', () => {
+    calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; }
+    renderKalender();
+  });
+  $('#calNext').addEventListener('click', () => {
+    calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderKalender();
+  });
+
+  $$('.cal-day', pg).forEach(day => {
+    day.addEventListener('click', () => {
+      const date = day.dataset.date;
+      $$('.cal-day', pg).forEach(d => d.classList.remove('selected'));
+      day.classList.add('selected');
+      renderCalDetail(date);
+    });
+  });
+}
+
+function renderCalDetail(date) {
+  const det = $('#calDetail');
+  const products = DB.getByDate(date);
+  if (products.length === 0) {
+    det.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--text-muted);font-size:13px">${fmtShort(date)} — Belum ada data</div>`;
+    return;
+  }
+  det.innerHTML = `<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-muted);margin-bottom:10px;font-family:var(--mono)">${fmtDay(date)}</div>` +
+    products.map(p => {
+      const total = p.split
+        ? p.containers.besar.reduce((s, c) => s + (c.val||0) * (c.mult||1), 0) +
+          p.containers.kecil.reduce((s, c) => s + (c.val||0) * (c.mult||1), 0)
+        : p.containers.single.reduce((s, c) => s + (c.val||0) * (c.mult||1), 0);
+      const target = p.split ? (p.targetBesar || 0) + (p.targetKecil || 0) : (p.targetSingle || 0);
+      const diff = total - target;
+      const dClass = diff > 0 ? 'diff-positive' : diff < 0 ? 'diff-negative' : 'diff-zero';
+      return `<div class="riwayat-item" data-rid="${p.id}">
+        <div class="riwayat-item-header">
+          <div>
+            <div class="riwayat-name">${p.name}</div>
+            <div class="riwayat-meta">${p.split ? 'Porsi Besar + Kecil' : 'Single'} · Target ${target}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="text-align:right">
+              <div class="riwayat-total">${total}</div>
+              <div style="font-size:11px;font-family:var(--mono)" class="${dClass}">${diff >= 0 ? '+' + diff : diff}</div>
+            </div>
+            <div class="riwayat-chevron">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="riwayat-detail">
+          <div class="riwayat-detail-inner">${renderSummary(p)}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+  $$('.riwayat-item', det).forEach(item => {
+    item.querySelector('.riwayat-item-header').addEventListener('click', () => {
+      item.classList.toggle('expanded');
+    });
+  });
+}
+
+// ── INIT ──
+setTab('beranda');
+
+// ── SERVICE WORKER ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
