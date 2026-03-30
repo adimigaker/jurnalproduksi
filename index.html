@@ -1295,6 +1295,50 @@
     }
     .product-card.card-open .card-chevron-icon { transform: rotate(180deg); }
 
+    /* Beranda: stepper 2x lebih besar, label kontainer di bawah */
+    #page-beranda .mult-step-btn {
+      width: 56px; height: 56px;
+      font-size: 26px;
+    }
+    #page-beranda .mult-step-input {
+      width: 56px; height: 56px;
+      font-size: 18px;
+    }
+    #page-beranda .container-row-bottom {
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: stretch;
+    }
+    #page-beranda .mult-label {
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      align-self: stretch;
+    }
+    #page-beranda .mult-label-kontainer {
+      width: 100%;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: -4px;
+    }
+    #page-beranda .container-input {
+      font-size: 28px;
+      padding: 10px;
+      height: 64px;
+    }
+    #page-beranda .container-row { gap: 10px; padding: 12px; }
+    #page-beranda .mult-result { font-size: 22px; }
+    #page-beranda .container-row-result {
+      padding-top: 6px;
+      margin-top: 4px;
+    }
+    #page-beranda .add-container-btn {
+      font-size: 15px;
+      padding: 14px;
+    }
+    #page-beranda .add-container-btn svg { width: 16px; height: 16px; }
+
     /* Header jadi clickable di mobile */
     @media (max-width: 767px) {
       .card-chevron-icon { display: block; }
@@ -2071,7 +2115,7 @@ function renderProductCard(p) {
               data-pid="${p.id}" data-col="${colKey}" data-cidx="${i}" />
             <button class="mult-step-btn mult-plus" data-pid="${p.id}" data-col="${colKey}" data-cidx="${i}">+</button>
           </div>
-          <span style="font-size:11px;color:var(--text-muted)">kontainer</span>
+          <span class="mult-label-kontainer">kontainer</span>
         </div>
         <div class="container-row-result">
           <span style="font-size:12px;color:var(--text-muted);margin-right:6px">=</span>
