@@ -2108,14 +2108,12 @@ function renderProductCard(p) {
           </button>
         </div>
         <div class="container-row-bottom">
-          <span class="mult-label">×</span>
           <div class="mult-stepper">
             <button class="mult-step-btn mult-minus" data-pid="${p.id}" data-col="${colKey}" data-cidx="${i}">−</button>
             <input class="mult-step-input" type="number" value="${c.mult || 1}" min="1" max="999"
               data-pid="${p.id}" data-col="${colKey}" data-cidx="${i}" />
             <button class="mult-step-btn mult-plus" data-pid="${p.id}" data-col="${colKey}" data-cidx="${i}">+</button>
           </div>
-          <span class="mult-label-kontainer">kontainer</span>
         </div>
         <div class="container-row-result">
           <span style="font-size:12px;color:var(--text-muted);margin-right:6px">=</span>
@@ -2145,7 +2143,7 @@ function renderProductCard(p) {
         <div class="container-list" data-pid="${p.id}" data-col="${colKey}">${rows}</div>
         <button class="add-container-btn" data-pid="${p.id}" data-col="${colKey}">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Tambah Kontainer
+          Tambah
         </button>
       </div>`;
   };
