@@ -49,6 +49,10 @@
       --tab-border: #21262d;
       --shadow: 0 8px 32px rgba(0,0,0,0.4);
       --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+      --col-kecil: #e5534b;
+      --col-kecil-bg: #2d1517;
+      --col-besar: #388bfd;
+      --col-besar-bg: #1c2d44;
     }
 
     html.light {
@@ -74,6 +78,10 @@
       --tab-border: #d0d7de;
       --shadow: 0 8px 32px rgba(0,0,0,0.1);
       --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+      --col-kecil: #d1242f;
+      --col-kecil-bg: #fff0ee;
+      --col-besar: #0969da;
+      --col-besar-bg: #ddf4ff;
     }
 
     /* Fallback: ikut sistem kalau belum pernah di-toggle */
@@ -101,6 +109,10 @@
         --tab-border: #d0d7de;
         --shadow: 0 8px 32px rgba(0,0,0,0.1);
         --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+        --col-kecil: #d1242f;
+        --col-kecil-bg: #fff0ee;
+        --col-besar: #0969da;
+        --col-besar-bg: #ddf4ff;
       }
     }
 
@@ -1153,7 +1165,53 @@
     .product-card:hover .delete-product-btn,
     .product-card.active-card .delete-product-btn { opacity: 1; pointer-events: auto; }
 
-    /* ── CONFIRM POPUP ── */
+    .setting-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .setting-toggle-row:last-child { border-bottom: none; }
+    .setting-toggle-label { font-size: 13px; color: var(--text); }
+    .setting-toggle-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .toggle-switch {
+      position: relative;
+      width: 40px; height: 22px;
+      flex-shrink: 0;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: var(--border);
+      border-radius: 22px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      left: 3px; top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle-switch input:checked + .toggle-track { background: var(--accent); }
+    .toggle-switch input:checked + .toggle-track::after { transform: translateX(18px); }
+
+    .color-swatch {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .color-swatch:active { transform: scale(0.88); }
+    .color-swatch.active { border-color: var(--text); }
     .confirm-backdrop {
       position: fixed;
       inset: 0;
@@ -1209,6 +1267,8 @@
       left: 0; right: 0;
       background: transparent;
       pointer-events: none;
+      display: flex;
+      justify-content: center;
     }
     .numpad-container {
       pointer-events: all;
@@ -1217,7 +1277,8 @@
       border-radius: 16px;
       box-shadow: 0 -4px 32px rgba(0,0,0,0.18);
       padding: 12px;
-      margin: 0 8px;
+      width: var(--numpad-width, 80vw);
+      max-width: 360px;
       transform-origin: center center;
       animation: numpadIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
@@ -1330,8 +1391,8 @@
 
     /* Non-split: center semua elemen */
     #page-beranda .product-cols.single .container-row-top,
-    #page-beranda .product-cols.single .container-row-bottom,
-    #page-beranda .product-cols.single .container-row-result { justify-content: center; }
+    #page-beranda .product-cols.single .container-row-bottom { justify-content: center; }
+    #page-beranda .product-cols.single .container-row-result { justify-content: flex-end; }
     #page-beranda .product-cols.single .container-input {
       max-width: min(200px, 50vw);
     }
@@ -1339,6 +1400,17 @@
       max-width: 220px;
       margin: 0 auto;
     }
+
+    /* Remove btn absolute pojok kanan atas container-row */
+    .remove-btn-abs {
+      position: absolute;
+      top: 4px; right: 4px;
+      padding: 3px;
+      opacity: 0.4;
+    }
+    .remove-btn-abs svg { width: 13px; height: 13px; }
+    .remove-btn-abs:active { opacity: 1; color: var(--danger); }
+    #page-beranda .container-row { position: relative; }
 
     /* Header jadi clickable di mobile */
     @media (max-width: 767px) {
@@ -1700,12 +1772,80 @@
     <div class="modal-handle"></div>
     <div class="modal-title">Pengaturan</div>
 
+    <div class="field-group" style="margin-bottom:6px">
+      <div class="field-label" style="margin-bottom:8px">Supabase</div>
+      <label class="field-label" style="font-weight:400;margin-bottom:4px">URL</label>
+      <input class="field-input" type="url" id="sbUrlInput"
+        placeholder="https://xxx.supabase.co" />
+    </div>
     <div class="field-group">
-      <label class="field-label">Apps Script URL</label>
-      <input class="field-input" type="url" id="scriptUrlInput"
-        placeholder="https://script.google.com/macros/s/..." />
-      <div style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.5">
-        Deploy Apps Script sebagai Web App, paste URL-nya di sini untuk sinkronisasi ke Google Sheets.
+      <label class="field-label" style="font-weight:400;margin-bottom:4px">Anon Key</label>
+      <input class="field-input" type="text" id="sbKeyInput"
+        placeholder="eyJ..." style="font-size:11px;font-family:var(--mono)" />
+    </div>
+
+    <div class="field-group">
+      <div class="field-label" style="margin-bottom:8px">Numpad</div>
+      <label class="field-label" style="font-weight:400;margin-bottom:4px">Ukuran: <span id="numpadWidthVal">80</span>%</label>
+      <input type="range" min="60" max="100" step="5"
+        value="80" id="numpadWidthSlider"
+        style="width:100%;accent-color:var(--accent);margin-top:4px" />
+
+      <div style="margin-top:12px">
+        <div class="setting-toggle-row">
+          <div>
+            <div class="setting-toggle-label">Posisi vertikal mengikuti input</div>
+            <div class="setting-toggle-sub">Off = muncul dari bawah seperti keyboard</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggleNumpadVertical" checked />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="setting-toggle-row">
+          <div>
+            <div class="setting-toggle-label">Posisi horizontal mengikuti input</div>
+            <div class="setting-toggle-sub">Off = selalu rata tengah</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggleNumpadHorizontal" checked />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label" style="margin-bottom:10px">Warna Split Mode</div>
+
+      <div style="margin-bottom:12px">
+        <label class="field-label" style="font-weight:400;margin-bottom:6px;display:block">Porsi Kecil</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+          <button class="color-swatch" data-col="kecil" data-hex="#e5534b" style="background:#e5534b"></button>
+          <button class="color-swatch" data-col="kecil" data-hex="#f78166" style="background:#f78166"></button>
+          <button class="color-swatch" data-col="kecil" data-hex="#db61a2" style="background:#db61a2"></button>
+          <button class="color-swatch" data-col="kecil" data-hex="#f0883e" style="background:#f0883e"></button>
+          <button class="color-swatch" data-col="kecil" data-hex="#d29922" style="background:#d29922"></button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="color" id="colKecilPicker" value="#e5534b" style="width:36px;height:36px;border:1px solid var(--border);border-radius:8px;cursor:pointer;padding:2px;background:none" />
+          <input class="field-input" type="text" id="colKecilHex" placeholder="#e5534b" style="flex:1;font-family:var(--mono);font-size:13px" />
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label" style="font-weight:400;margin-bottom:6px;display:block">Porsi Besar</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+          <button class="color-swatch" data-col="besar" data-hex="#388bfd" style="background:#388bfd"></button>
+          <button class="color-swatch" data-col="besar" data-hex="#3fb950" style="background:#3fb950"></button>
+          <button class="color-swatch" data-col="besar" data-hex="#79c0ff" style="background:#79c0ff"></button>
+          <button class="color-swatch" data-col="besar" data-hex="#a371f7" style="background:#a371f7"></button>
+          <button class="color-swatch" data-col="besar" data-hex="#39d353" style="background:#39d353"></button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="color" id="colBesarPicker" value="#388bfd" style="width:36px;height:36px;border:1px solid var(--border);border-radius:8px;cursor:pointer;padding:2px;background:none" />
+          <input class="field-input" type="text" id="colBesarHex" placeholder="#388bfd" style="flex:1;font-family:var(--mono);font-size:13px" />
+        </div>
       </div>
     </div>
 
@@ -1713,7 +1853,7 @@
 
     <div class="modal-actions" style="flex-direction:column;gap:8px">
       <button class="btn btn-primary" id="btnSimpanUrl">Simpan & Sinkronisasi</button>
-      <button class="btn btn-ghost" id="btnSyncNow" style="display:none">Sinkronisasi Sekarang</button>
+      <button class="btn btn-ghost" id="btnSyncNow">Sinkronisasi Sekarang</button>
       <button class="btn btn-ghost" id="btnSettingsBatal">Tutup</button>
     </div>
   </div>
@@ -1789,10 +1929,15 @@ const fmtShort = (d) => new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { 
 const fmtDay = (d) => new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' });
 
 // ── SYNC LAYER ──
-const SCRIPT_URL_KEY = 'jp_script_url';
-const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6qeWVq5aT6v7iRcg9ZUKYWRQv2g9-XnnbkEHXf8_I7o7l3JBbi3BtnnA8hGK8DlsQDg/exec';
+const SB_URL_KEY  = 'jp_sb_url';
+const SB_KEY_KEY  = 'jp_sb_key';
+const DEFAULT_SB_URL = 'https://mcipjbhtyjcswlquvfsr.supabase.co';
+const DEFAULT_SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jaXBqYmh0eWpjc3dscXV2ZnNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5MjcwMzYsImV4cCI6MjA5MDUwMzAzNn0.OKFXKiURm9gelliUCNHcarGyZcXx-byqzXIwu0Bo5SM';
+
 const Sync = {
-  url: () => localStorage.getItem(SCRIPT_URL_KEY) || DEFAULT_SCRIPT_URL,
+  sbUrl: () => localStorage.getItem(SB_URL_KEY) || DEFAULT_SB_URL,
+  sbKey: () => localStorage.getItem(SB_KEY_KEY) || DEFAULT_SB_KEY,
+
   setDot(state) {
     const dot = document.getElementById('syncDot');
     if (!dot) return;
@@ -1806,29 +1951,100 @@ const Sync = {
     el.textContent = msg;
     el.className = 'sync-status-box' + (type ? ' ' + type : '');
   },
-  async get() {
-    const r = await fetch(Sync.url());
-    const j = await r.json();
-    if (!j.ok) throw new Error(j.error);
-    return j.data;
+
+  headers() {
+    return {
+      'Content-Type': 'application/json',
+      'apikey': Sync.sbKey(),
+      'Authorization': 'Bearer ' + Sync.sbKey(),
+      'Prefer': 'return=minimal'
+    };
   },
-  async post(body) {
-    const url = Sync.url();
-    if (!url) return;
-    const r = await fetch(url, { method: 'POST', body: JSON.stringify(body) });
-    const j = await r.json();
-    if (!j.ok) throw new Error(j.error);
-    return j.data;
+
+  // Konversi dari format app ke format Supabase
+  toRow(p) {
+    return {
+      id: p.id,
+      name: p.name,
+      date: p.date,
+      split: p.split,
+      order_idx: p.order || 0,
+      target_single: p.targetSingle || 0,
+      target_besar: p.targetBesar || 0,
+      target_kecil: p.targetKecil || 0,
+      containers: p.containers
+    };
   },
+
+  // Konversi dari format Supabase ke format app
+  fromRow(r) {
+    return {
+      id: r.id,
+      name: r.name,
+      date: r.date,
+      split: r.split,
+      order: r.order_idx || 0,
+      targetSingle: r.target_single || 0,
+      targetBesar: r.target_besar || 0,
+      targetKecil: r.target_kecil || 0,
+      containers: r.containers
+    };
+  },
+
   async pull() {
-    if (!Sync.url()) return;
     Sync.setDot('loading');
-    try { const rows = await Sync.get(); DB.save(rows); Sync.setDot('ok'); return rows; }
-    catch(e) { Sync.setDot('err'); throw e; }
+    try {
+      const r = await fetch(
+        `${Sync.sbUrl()}/rest/v1/produksi?select=*&order=order_idx.asc`,
+        { headers: Sync.headers() }
+      );
+      if (!r.ok) throw new Error(await r.text());
+      const rows = await r.json();
+      DB.save(rows.map(Sync.fromRow));
+      Sync.setDot('ok');
+    } catch(e) {
+      Sync.setDot('err');
+      throw e;
+    }
   },
-  async add(p)    { if (!Sync.url()) return; Sync.setDot('loading'); try { await Sync.post({ action:'add', product:p }); Sync.setDot('ok'); } catch(e) { Sync.setDot('err'); } },
-  async update(p) { if (!Sync.url()) return; Sync.setDot('loading'); try { await Sync.post({ action:'update', product:p }); Sync.setDot('ok'); } catch(e) { Sync.setDot('err'); } },
-  async delete(id){ if (!Sync.url()) return; Sync.setDot('loading'); try { await Sync.post({ action:'delete', id }); Sync.setDot('ok'); } catch(e) { Sync.setDot('err'); } },
+
+  async add(p) {
+    Sync.setDot('loading');
+    try {
+      const r = await fetch(`${Sync.sbUrl()}/rest/v1/produksi`, {
+        method: 'POST',
+        headers: { ...Sync.headers(), 'Prefer': 'return=minimal' },
+        body: JSON.stringify(Sync.toRow(p))
+      });
+      if (!r.ok) throw new Error(await r.text());
+      Sync.setDot('ok');
+    } catch(e) { Sync.setDot('err'); }
+  },
+
+  async update(p) {
+    Sync.setDot('loading');
+    try {
+      const r = await fetch(`${Sync.sbUrl()}/rest/v1/produksi?id=eq.${p.id}`, {
+        method: 'PATCH',
+        headers: { ...Sync.headers(), 'Prefer': 'return=minimal' },
+        body: JSON.stringify(Sync.toRow(p))
+      });
+      if (!r.ok) throw new Error(await r.text());
+      Sync.setDot('ok');
+    } catch(e) { Sync.setDot('err'); }
+  },
+
+  async delete(id) {
+    Sync.setDot('loading');
+    try {
+      const r = await fetch(`${Sync.sbUrl()}/rest/v1/produksi?id=eq.${id}`, {
+        method: 'DELETE',
+        headers: Sync.headers()
+      });
+      if (!r.ok) throw new Error(await r.text());
+      Sync.setDot('ok');
+    } catch(e) { Sync.setDot('err'); }
+  }
 };
 
 // ── TOAST ──
@@ -2097,16 +2313,28 @@ function renderProductCard(p) {
   const colClass = isSplit ? 'double' : 'single';
 
   const renderCol = (label, target, containers, colKey) => {
+    // Ambil warna dari localStorage atau default
+    const colorKecil = localStorage.getItem('jp_col_kecil') || '#e5534b';
+    const colorBesar = localStorage.getItem('jp_col_besar') || '#388bfd';
+    const hex2rgba = (hex, a) => {
+      const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+      return `rgba(${r},${g},${b},${a})`;
+    };
+    const accentStyle = colKey === 'kecil'
+      ? `border-color:${colorKecil};background:${hex2rgba(colorKecil,0.08)};`
+      : colKey === 'besar'
+      ? `border-color:${colorBesar};background:${hex2rgba(colorBesar,0.08)};`
+      : '';
     const rows = containers.map((c, i) => {
       const result = (c.val || 0) * (c.mult || 1);
       return `
-      <div class="container-row">
+      <div class="container-row" style="${accentStyle}">
+        <button class="remove-btn remove-btn-abs" data-pid="${p.id}" data-col="${colKey}" data-cidx="${i}">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
         <div class="container-row-top">
           <input class="container-input" type="number" value="${c.val || ''}" min="0"
             data-pid="${p.id}" data-col="${colKey}" data-cidx="${i}" placeholder="0" />
-          <button class="remove-btn" data-pid="${p.id}" data-col="${colKey}" data-cidx="${i}">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
         </div>
         <div class="container-row-bottom">
           <div class="mult-stepper">
@@ -2215,7 +2443,7 @@ function renderSummary(p) {
       const sub = (c.val || 0) * (c.mult || 1);
       total += sub;
       return `<div class="summary-row">
-        <span class="summary-label">${c.val || 0} × ${c.mult} kontainer</span>
+        <span class="summary-label">${c.val || 0} × ${c.mult}</span>
         <span class="summary-val">${sub} pcs</span>
       </div>`;
     }).join('');
@@ -2581,7 +2809,7 @@ function renderEditCol(label, colKey, target, containers) {
             min="1" max="999" data-col="${colKey}" data-cidx="${i}" />
           <button class="mult-step-btn edit-mult-plus" data-col="${colKey}" data-cidx="${i}">+</button>
         </div>
-        <span style="font-size:11px;color:var(--text-muted)">kontainer</span>
+        <span style="font-size:11px;color:var(--text-muted)"></span>
       </div>
       <div class="container-row-result">
         <span style="font-size:12px;color:var(--text-muted);margin-right:6px">=</span>
@@ -3030,11 +3258,69 @@ function renderCalDetail(date) {
 
 // ── SETTINGS MODAL ──
 $('#settingsBtn').addEventListener('click', () => {
-  $('#scriptUrlInput').value = Sync.url();
-  const hasUrl = !!Sync.url();
-  $('#btnSyncNow').style.display = hasUrl ? 'block' : 'none';
+  $('#sbUrlInput').value = Sync.sbUrl();
+  $('#sbKeyInput').value = Sync.sbKey();
+  const w = localStorage.getItem('jp_numpad_width') || '80';
+  $('#numpadWidthSlider').value = w;
+  $('#numpadWidthVal').textContent = w;
+  $('#toggleNumpadVertical').checked   = localStorage.getItem('jp_numpad_v') !== '0';
+  $('#toggleNumpadHorizontal').checked = localStorage.getItem('jp_numpad_h') !== '0';
+  // Load warna split
+  const ck = localStorage.getItem('jp_col_kecil') || '#e5534b';
+  const cb = localStorage.getItem('jp_col_besar') || '#388bfd';
+  $('#colKecilPicker').value = ck; $('#colKecilHex').value = ck;
+  $('#colBesarPicker').value = cb; $('#colBesarHex').value = cb;
+  $$('.color-swatch[data-col="kecil"]').forEach(s => s.classList.toggle('active', s.dataset.hex === ck));
+  $$('.color-swatch[data-col="besar"]').forEach(s => s.classList.toggle('active', s.dataset.hex === cb));
   Sync.setStatus('');
   $('#settingsOverlay').classList.add('open');
+});
+
+$('#numpadWidthSlider').addEventListener('input', () => {
+  const v = $('#numpadWidthSlider').value;
+  $('#numpadWidthVal').textContent = v;
+  localStorage.setItem('jp_numpad_width', v);
+  document.documentElement.style.setProperty('--numpad-width', v + 'vw');
+});
+
+$('#toggleNumpadVertical').addEventListener('change', () => {
+  localStorage.setItem('jp_numpad_v', $('#toggleNumpadVertical').checked ? '1' : '0');
+});
+$('#toggleNumpadHorizontal').addEventListener('change', () => {
+  localStorage.setItem('jp_numpad_h', $('#toggleNumpadHorizontal').checked ? '1' : '0');
+});
+
+// Warna split mode
+function applyColSetting(col, hex) {
+  const key = col === 'kecil' ? 'jp_col_kecil' : 'jp_col_besar';
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
+  localStorage.setItem(key, hex);
+  // Update swatch active state
+  $$('.color-swatch[data-col="' + col + '"]').forEach(s => s.classList.toggle('active', s.dataset.hex === hex));
+  if (col === 'kecil') { $('#colKecilPicker').value = hex; $('#colKecilHex').value = hex; }
+  else { $('#colBesarPicker').value = hex; $('#colBesarHex').value = hex; }
+}
+
+$$('.color-swatch').forEach(btn => {
+  btn.addEventListener('click', () => applyColSetting(btn.dataset.col, btn.dataset.hex));
+});
+
+['colKecilPicker','colBesarPicker'].forEach(id => {
+  const col = id.includes('Kecil') ? 'kecil' : 'besar';
+  const hexInput = id.includes('Kecil') ? $('#colKecilHex') : $('#colBesarHex');
+  $('#' + id).addEventListener('input', () => {
+    hexInput.value = $('#' + id).value;
+    applyColSetting(col, $('#' + id).value);
+  });
+});
+
+['colKecilHex','colBesarHex'].forEach(id => {
+  const col = id.includes('Kecil') ? 'kecil' : 'besar';
+  const picker = id.includes('Kecil') ? $('#colKecilPicker') : $('#colBesarPicker');
+  $('#' + id).addEventListener('change', () => {
+    const v = $('#' + id).value.trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(v)) { picker.value = v; applyColSetting(col, v); }
+  });
 });
 
 $('#btnSettingsBatal').addEventListener('click', () => {
@@ -3045,23 +3331,17 @@ $('#settingsOverlay').addEventListener('click', (e) => {
 });
 
 $('#btnSimpanUrl').addEventListener('click', async () => {
-  const url = $('#scriptUrlInput').value.trim();
-  if (!url) {
-    localStorage.removeItem(SCRIPT_URL_KEY);
-    Sync.setDot('idle');
-    Sync.setStatus('URL dihapus. Sinkronisasi dinonaktifkan.', '');
-    $('#btnSyncNow').style.display = 'none';
-    return;
-  }
-  localStorage.setItem(SCRIPT_URL_KEY, url);
-  $('#btnSyncNow').style.display = 'block';
-  Sync.setStatus('Menghubungkan ke Sheets...', '');
+  const url = $('#sbUrlInput').value.trim();
+  const key = $('#sbKeyInput').value.trim();
+  if (url) localStorage.setItem(SB_URL_KEY, url);
+  if (key) localStorage.setItem(SB_KEY_KEY, key);
+  Sync.setStatus('Menghubungkan ke Supabase...', '');
   try {
     await Sync.pull();
     Sync.setStatus('✓ Terhubung! Data berhasil disinkronisasi.', 'ok');
     refreshApp();
   } catch(e) {
-    Sync.setStatus('✗ Gagal terhubung. Periksa URL dan pastikan akses "Anyone".', 'err');
+    Sync.setStatus('✗ Gagal terhubung. Periksa URL dan Key.', 'err');
   }
 });
 
@@ -3563,6 +3843,12 @@ const Numpad = (() => {
     originalVal = inputEl.value || '';
     display.textContent = originalVal || '0';
 
+    const savedWidth = localStorage.getItem('jp_numpad_width') || '80';
+    document.documentElement.style.setProperty('--numpad-width', savedWidth + 'vw');
+
+    const modeV = localStorage.getItem('jp_numpad_v') !== '0'; // default true
+    const modeH = localStorage.getItem('jp_numpad_h') !== '0'; // default true
+
     const container = overlay.querySelector('.numpad-container');
     container.classList.remove('hiding');
 
@@ -3570,37 +3856,54 @@ const Numpad = (() => {
     overlay.style.display  = 'block';
 
     requestAnimationFrame(() => {
-      const rect   = inputEl.getBoundingClientRect();
-      const kbH    = container.offsetHeight;
-      const gap    = 8;
-      const vp     = window.innerHeight;
+      const rect = inputEl.getBoundingClientRect();
+      const kbH  = container.offsetHeight;
+      const kbW  = container.offsetWidth;
+      const gap  = 8;
+      const vw   = window.innerWidth;
+      const vh   = window.innerHeight;
 
-      // Baris 4-5-6 = baris ke-2 dari 4 baris total (display + 4 baris angka)
-      // Perkiraan: display ~60px, tiap baris ~60px, gap 8px
-      // Baris ke-2 angka mulai di: 60 + 12 + 60 + 8 = ~140px dari atas container
-      // Tengah baris ke-2: ~140 + 30 = 170px dari atas container
-      const rowMidOffset = kbH * 0.52; // empiris ~52% dari tinggi container
+      // ── VERTIKAL ──
+      if (modeV) {
+        // Ikuti input: baris tengah numpad sejajar input
+        const rowMidOffset = kbH * 0.52;
+        const inputCenterY = rect.top + rect.height / 2;
+        let top = inputCenterY - rowMidOffset;
+        top = Math.max(gap, Math.min(top, vh - kbH - gap));
+        overlay.style.top    = top + 'px';
+        overlay.style.bottom = '';
+        overlay.style.justifyContent = 'center'; // horizontal tetap center sementara
+      } else {
+        // Muncul dari bawah seperti keyboard
+        overlay.style.top    = '';
+        overlay.style.bottom = '80px'; // di atas bottom nav
+        overlay.style.justifyContent = 'center';
+      }
 
-      // Posisi ideal: inputCenter - rowMidOffset
-      const inputCenterY = rect.top + rect.height / 2;
-      let top = inputCenterY - rowMidOffset;
-
-      // Clamp agar tidak keluar layar
-      top = Math.max(gap, Math.min(top, vp - kbH - gap));
-
-      overlay.style.top    = top + 'px';
-      overlay.style.bottom = '';
+      // ── HORIZONTAL ──
+      if (modeH) {
+        // Ikuti posisi input secara horizontal
+        const inputCenterX = rect.left + rect.width / 2;
+        let left = inputCenterX - kbW / 2;
+        left = Math.max(gap, Math.min(left, vw - kbW - gap));
+        // Override flexbox center dengan position manual
+        overlay.style.justifyContent = 'flex-start';
+        container.style.marginLeft = left + 'px';
+      } else {
+        overlay.style.justifyContent = 'center';
+        container.style.marginLeft = '';
+      }
     });
   }
 
   function hide() {
     const container = overlay.querySelector('.numpad-container');
     container.classList.add('hiding');
-    // Tunggu animasi selesai baru sembunyikan
     setTimeout(() => {
       overlay.style.display  = 'none';
       backdrop.style.display = 'none';
       container.classList.remove('hiding');
+      container.style.marginLeft = '';
     }, 140);
     activeInput = null;
     onCommit    = null;
