@@ -3225,63 +3225,56 @@ document.addEventListener("DOMContentLoaded", () => {
     attachAutoHideListener();
 });
 
-// Fungsi log akses perangkat
+// ==================== LOG AKSES PERANGKAT (PWA & Browser) ====================
 async function logAccess() {
     try {
-        console.log("[LOG] Memulai log akses");
+        // Deteksi mode tampilan
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+        console.log(`[LOG] Memulai log akses - mode: ${isStandalone ? 'STANDALONE (PWA)' : 'Browser biasa'}`);
+        
         const url = `${Sync.sbUrl()}/rest/v1/access_logs`;
         const headers = {
-            "Content-Type": "application/json",
-            apikey: Sync.sbKey(),
-            Authorization: `Bearer ${Sync.sbKey()}`,
-            Prefer: "return=minimal"
+            'Content-Type': 'application/json',
+            'apikey': Sync.sbKey(),
+            'Authorization': `Bearer ${Sync.sbKey()}`,
+            'Prefer': 'return=minimal'
         };
-
-        // Throttle: hanya sekali per 10 menit
-        const lastLog = localStorage.getItem("last_log_time");
-        const now = Date.now();
-        if (lastLog && now - parseInt(lastLog) < 600000) {
-            console.log("[LOG] Throttle, lewati");
-            return;
-        }
-        localStorage.setItem("last_log_time", now);
-
-        // Ambil IP publik (timeout 3 detik)
-        let ip = "";
+        
+        // IP (opsional, timeout pendek)
+        let ip = '';
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 3000);
-            const ipRes = await fetch("https://api.ipify.org?format=json", {
-                signal: controller.signal
-            });
+            const timeoutId = setTimeout(() => controller.abort(), 2000);
+            const ipRes = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
             clearTimeout(timeoutId);
             if (ipRes.ok) {
                 const ipData = await ipRes.json();
                 ip = ipData.ip;
             }
-        } catch (e) {
-            console.warn("[LOG] Gagal ambil IP:", e);
+        } catch(e) {
+            console.warn('[LOG] IP gagal:', e.message);
         }
-
-        // Kumpulkan data
-        let platform = "",
-            platformVersion = "",
-            model = "";
+        
+        // Data device
+        let platform = '', platformVersion = '', model = '';
         if (navigator.userAgentData) {
             try {
                 const uaData = navigator.userAgentData;
-                platform = uaData.platform || "";
-                const highEntropy = await uaData.getHighEntropyValues([
-                    "model",
-                    "platformVersion"
+                platform = uaData.platform || '';
+                // getHighEntropyValues mungkin butuh waktu, kita timeout
+                const highEntropy = await Promise.race([
+                    uaData.getHighEntropyValues(['model', 'platformVersion']),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1000))
                 ]);
-                model = highEntropy.model || "";
-                platformVersion = highEntropy.platformVersion || "";
-            } catch (e) {
-                console.warn("[LOG] Gagal ambil high-entropy values:", e);
+                model = highEntropy.model || '';
+                platformVersion = highEntropy.platformVersion || '';
+            } catch(e) {
+                console.warn('[LOG] High-entropy gagal:', e.message);
             }
+        } else {
+            console.warn('[LOG] userAgentData tidak didukung');
         }
-
+        
         const payload = {
             user_agent: navigator.userAgent,
             screen_width: screen.width,
@@ -3291,28 +3284,27 @@ async function logAccess() {
             platform_version: platformVersion,
             device_model: model
         };
-        console.log("[LOG] Mengirim payload:", payload);
-
+        console.log('[LOG] Mengirim payload:', payload);
+        
         const response = await fetch(url, {
-            method: "POST",
+            method: 'POST',
             headers: headers,
             body: JSON.stringify(payload)
         });
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-        console.log("[LOG] Berhasil mengirim log");
-    } catch (e) {
-        console.error("[LOG] Gagal log akses:", e);
+        if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+        console.log('[LOG] Berhasil terkirim');
+    } catch(e) {
+        console.error('[LOG] Gagal total:', e);
     }
 }
 
-// Panggil logAccess setelah DOM siap, dengan delay agar tidak mengganggu render
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => {
-        setTimeout(logAccess, 1500);
-    });
-} else {
-    setTimeout(logAccess, 1500);
-}
+// Panggil logAccess setelah halaman siap, tanpa throttle
+window.addEventListener('load', () => {
+    setTimeout(logAccess, 1000);
+});
+// Juga panggil saat aplikasi menjadi aktif kembali (misal dari sleep)
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+        setTimeout(logAccess, 500);
+    }
+});
