@@ -3225,3 +3225,35 @@ document.addEventListener("DOMContentLoaded", () => {
     attachAutoHideListener();
 });
 
+// Fungsi log akses perangkat
+async function logAccess() {
+    try {
+        const url = `${Sync.sbUrl()}/rest/v1/access_logs`;
+        const headers = {
+            'Content-Type': 'application/json',
+            'apikey': Sync.sbKey(),
+            'Authorization': `Bearer ${Sync.sbKey()}`,
+            'Prefer': 'return=minimal'
+        };
+        // Throttle: hanya log sekali per 10 menit
+        const lastLog = localStorage.getItem('last_log_time');
+        const now = Date.now();
+        if (lastLog && (now - parseInt(lastLog)) < 600000) return;
+        localStorage.setItem('last_log_time', now);
+        
+        await fetch(url, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+                user_agent: navigator.userAgent,
+                screen_width: screen.width,
+                screen_height: screen.height
+            })
+        });
+    } catch(e) { console.warn('Gagal log akses', e); }
+}
+
+// Panggil setelah DOM siap
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(logAccess, 1000);
+});
