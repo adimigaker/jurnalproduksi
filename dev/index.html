@@ -13,7 +13,7 @@
       padding: 20px;
     }
     .container {
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
       background: white;
       border-radius: 14px;
@@ -25,6 +25,8 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 12px;
+      overflow-x: auto;
+      display: block;
     }
     th, td {
       border: 1px solid #ddd;
@@ -40,6 +42,7 @@
       margin-bottom: 20px;
       display: flex;
       gap: 10px;
+      flex-wrap: wrap;
     }
     button {
       padding: 8px 16px;
@@ -58,6 +61,7 @@
       padding: 40px;
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/UAParser.js/1.0.37/ua-parser.min.js"></script>
 </head>
 <body>
 <div class="container">
@@ -71,13 +75,30 @@
 </div>
 
 <script>
-  // Konfigurasi Supabase (sama dengan main app)
   const SB_URL = localStorage.getItem('jp_sb_url') || "https://mcipjbhtyjcswlquvfsr.supabase.co";
   const SB_KEY = localStorage.getItem('jp_sb_key') || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jaXBqYmh0eWpjc3dscXV2ZnNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5MjcwMzYsImV4cCI6MjA5MDUwMzAzNn0.OKFXKiURm9gelliUCNHcarGyZcXx-byqzXIwu0Bo5SM";
-
-  // Password sederhana (ganti sesuai keinginan)
   const PASSWORD = "admin123";
   let authenticated = false;
+
+  function parseUserAgent(uaString) {
+    try {
+      const parser = new UAParser(uaString);
+      const result = parser.getResult();
+      let device = result.device.vendor || result.device.model || '';
+      if (device) {
+        if (result.device.model && result.device.vendor && !device.includes(result.device.vendor)) {
+          device = result.device.vendor + ' ' + result.device.model;
+        }
+      } else {
+        device = 'Perangkat tidak diketahui';
+      }
+      const os = result.os.name + (result.os.version ? ' ' + result.os.version : '');
+      const browser = result.browser.name + (result.browser.version ? ' ' + result.browser.version : '');
+      return { device, os, browser };
+    } catch(e) {
+      return { device: 'Tidak terdeteksi', os: '?', browser: '?' };
+    }
+  }
 
   function checkAuth() {
     const pwd = prompt("Masukkan password untuk mengakses halaman monitor:");
@@ -113,14 +134,24 @@
       document.getElementById('tableContainer').innerHTML = '<p>Belum ada data akses.</p>';
       return;
     }
-    let html = '<table><thead><tr><th>Tanggal & Waktu</th><th>Perangkat & Browser (User Agent)</th><th>Layar (px)</th></tr></thead><tbody>';
+    let html = `<table><thead>
+      <th>Tanggal & Waktu</th>
+      <th>Perangkat (Merek/Model)</th>
+      <th>OS & Browser</th>
+      <th>Layar (px)</th>
+      <th>IP Address</th>
+    </tr></thead><tbody>`;
     for (let row of rows) {
       const date = new Date(row.created_at).toLocaleString('id-ID');
+      const parsed = parseUserAgent(row.user_agent);
       const screenInfo = `${row.screen_width} x ${row.screen_height}`;
+      const ip = row.ip_address || '-';
       html += `<tr>
         <td>${date}</td>
-        <td style="word-break:break-word">${escapeHtml(row.user_agent)}</td>
+        <td>${escapeHtml(parsed.device)}</td>
+        <td>${escapeHtml(parsed.os)} / ${escapeHtml(parsed.browser)}</td>
         <td>${screenInfo}</td>
+        <td>${ip}</td>
       </tr>`;
     }
     html += '</tbody></table>';
@@ -128,6 +159,7 @@
   }
 
   function escapeHtml(str) {
+    if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {
       if (m === '&') return '&amp;';
       if (m === '<') return '&lt;';
@@ -160,13 +192,15 @@
       alert('Tidak ada data untuk diekspor');
       return;
     }
-    let content = "Tanggal & Waktu\tPerangkat & Browser (User Agent)\tLayar (px)\n";
+    let content = "Tanggal & Waktu\tPerangkat\tOS & Browser\tLayar (px)\tIP Address\n";
     for (let row of rows) {
       const cells = row.querySelectorAll('td');
       const date = cells[0].innerText;
-      const ua = cells[1].innerText;
-      const screen = cells[2].innerText;
-      content += `${date}\t${ua}\t${screen}\n`;
+      const device = cells[1].innerText;
+      const osbrowser = cells[2].innerText;
+      const screen = cells[3].innerText;
+      const ip = cells[4].innerText;
+      content += `${date}\t${device}\t${osbrowser}\t${screen}\t${ip}\n`;
     }
     const blob = new Blob([content], {type: 'text/plain'});
     const link = document.createElement('a');
@@ -176,7 +210,6 @@
     URL.revokeObjectURL(link.href);
   }
 
-  // Inisialisasi
   const savedAuth = localStorage.getItem('monitor_auth');
   if (savedAuth === 'true') {
     authenticated = true;
