@@ -3230,30 +3230,42 @@ async function logAccess() {
     try {
         const url = `${Sync.sbUrl()}/rest/v1/access_logs`;
         const headers = {
-            'Content-Type': 'application/json',
-            'apikey': Sync.sbKey(),
-            'Authorization': `Bearer ${Sync.sbKey()}`,
-            'Prefer': 'return=minimal'
+            "Content-Type": "application/json",
+            apikey: Sync.sbKey(),
+            Authorization: `Bearer ${Sync.sbKey()}`,
+            Prefer: "return=minimal"
         };
-        // Throttle: hanya log sekali per 10 menit
-        const lastLog = localStorage.getItem('last_log_time');
+        const lastLog = localStorage.getItem("last_log_time");
         const now = Date.now();
-        if (lastLog && (now - parseInt(lastLog)) < 600000) return;
-        localStorage.setItem('last_log_time', now);
-        
+        if (lastLog && now - parseInt(lastLog) < 600000) return;
+        localStorage.setItem("last_log_time", now);
+
+        // Ambil IP publik
+        let ip = "";
+        try {
+            const ipRes = await fetch("https://api.ipify.org?format=json");
+            const ipData = await ipRes.json();
+            ip = ipData.ip;
+        } catch (e) {
+            console.warn("Gagal ambil IP", e);
+        }
+
         await fetch(url, {
-            method: 'POST',
+            method: "POST",
             headers: headers,
             body: JSON.stringify({
                 user_agent: navigator.userAgent,
                 screen_width: screen.width,
-                screen_height: screen.height
+                screen_height: screen.height,
+                ip_address: ip
             })
         });
-    } catch(e) { console.warn('Gagal log akses', e); }
+    } catch (e) {
+        console.warn("Gagal log akses", e);
+    }
 }
 
 // Panggil setelah DOM siap
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
     setTimeout(logAccess, 1000);
 });
