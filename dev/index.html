@@ -21,12 +21,13 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     h1 { font-size: 1.5rem; margin-top: 0; }
+    .table-wrapper {
+      overflow-x: auto;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 12px;
-      overflow-x: auto;
-      display: block;
     }
     th, td {
       border: 1px solid #ddd;
@@ -71,7 +72,7 @@
     <button id="clearBtn" class="danger">🗑️ Hapus Semua</button>
     <button id="exportBtn">📄 Export TXT</button>
   </div>
-  <div id="tableContainer">Loading...</div>
+  <div id="tableContainer" class="table-wrapper">Loading...</div>
 </div>
 
 <script>
@@ -134,24 +135,33 @@
       document.getElementById('tableContainer').innerHTML = '<p>Belum ada data akses.</p>';
       return;
     }
-    let html = `<table><thead>
-      <th>Tanggal & Waktu</th>
-      <th>Perangkat (Merek/Model)</th>
-      <th>OS & Browser</th>
-      <th>Layar (px)</th>
-      <th>IP Address</th>
-    </tr></thead><tbody>`;
+    let html = `<table>
+      <thead>
+        <tr><th>Tanggal & Waktu</th><th>Perangkat (Merek/Model)</th><th>OS & Browser</th><th>Layar (px)</th><th>IP Address</th></tr>
+      </thead>
+      <tbody>`;
     for (let row of rows) {
       const date = new Date(row.created_at).toLocaleString('id-ID');
+      let device = row.device_model || '';
+      let osInfo = '';
+      let browserInfo = '';
+      if (row.platform) {
+        osInfo = `${row.platform} ${row.platform_version || ''}`;
+      }
       const parsed = parseUserAgent(row.user_agent);
+      if (!device) device = parsed.device;
+      if (!osInfo) osInfo = parsed.os;
+      browserInfo = parsed.browser;
+      
       const screenInfo = `${row.screen_width} x ${row.screen_height}`;
       const ip = row.ip_address || '-';
+      
       html += `<tr>
-        <td>${date}</td>
-        <td>${escapeHtml(parsed.device)}</td>
-        <td>${escapeHtml(parsed.os)} / ${escapeHtml(parsed.browser)}</td>
-        <td>${screenInfo}</td>
-        <td>${ip}</td>
+        <td>${escapeHtml(date)}</td>
+        <td>${escapeHtml(device)}</td>
+        <td>${escapeHtml(osInfo)} / ${escapeHtml(browserInfo)}</td>
+        <td>${escapeHtml(screenInfo)}</td>
+        <td>${escapeHtml(ip)}</td>
       </tr>`;
     }
     html += '</tbody></table>';
@@ -171,14 +181,18 @@
   async function clearAll() {
     if (!confirm('Hapus semua data akses? Tindakan ini tidak dapat dibatalkan.')) return;
     try {
-      const response = await fetch(`${SB_URL}/rest/v1/access_logs`, {
+      // Menambahkan filter WHERE id.neq.0 untuk memenuhi persyaratan WHERE clause
+      const response = await fetch(`${SB_URL}/rest/v1/access_logs?id=neq.0`, {
         method: 'DELETE',
         headers: {
           'apikey': SB_KEY,
           'Authorization': `Bearer ${SB_KEY}`
         }
       });
-      if (!response.ok) throw new Error(await response.text());
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
+      }
       alert('Semua data berhasil dihapus');
       loadData();
     } catch (err) {
@@ -187,7 +201,12 @@
   }
 
   function exportTxt() {
-    const rows = document.querySelectorAll('#tableContainer table tbody tr');
+    const table = document.querySelector('#tableContainer table');
+    if (!table) {
+      alert('Tidak ada data untuk diekspor');
+      return;
+    }
+    const rows = table.querySelectorAll('tbody tr');
     if (!rows.length) {
       alert('Tidak ada data untuk diekspor');
       return;
@@ -210,6 +229,7 @@
     URL.revokeObjectURL(link.href);
   }
 
+  // Inisialisasi
   const savedAuth = localStorage.getItem('monitor_auth');
   if (savedAuth === 'true') {
     authenticated = true;
