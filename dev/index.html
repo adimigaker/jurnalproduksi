@@ -1,1 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitor Akses - Jurnal Produksi</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f6f8fa;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 { font-size: 1.5rem; margin-top: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #f0f3f6;
+      font-weight: 600;
+    }
+    .actions {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #fff;
+      cursor: pointer;
+    }
+    button.danger {
+      background: #f85149;
+      color: white;
+      border-color: #f85149;
+    }
+    .loading {
+      text-align: center;
+      padding: 40px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>📊 Monitor Akses Perangkat</h1>
+  <div class="actions">
+    <button id="refreshBtn">🔄 Refresh</button>
+    <button id="clearBtn" class="danger">🗑️ Hapus Semua</button>
+    <button id="exportBtn">📄 Export TXT</button>
+  </div>
+  <div id="tableContainer">Loading...</div>
+</div>
 
+<script>
+  // Konfigurasi Supabase (sama dengan main app)
+  const SB_URL = localStorage.getItem('jp_sb_url') || "https://mcipjbhtyjcswlquvfsr.supabase.co";
+  const SB_KEY = localStorage.getItem('jp_sb_key') || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jaXBqYmh0eWpjc3dscXV2ZnNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5MjcwMzYsImV4cCI6MjA5MDUwMzAzNn0.OKFXKiURm9gelliUCNHcarGyZcXx-byqzXIwu0Bo5SM";
+
+  // Password sederhana (ganti sesuai keinginan)
+  const PASSWORD = "admin123";
+  let authenticated = false;
+
+  function checkAuth() {
+    const pwd = prompt("Masukkan password untuk mengakses halaman monitor:");
+    if (pwd === PASSWORD) {
+      authenticated = true;
+      localStorage.setItem('monitor_auth', 'true');
+      loadData();
+    } else {
+      document.getElementById('tableContainer').innerHTML = '<p style="color:red">Akses ditolak. Password salah.</p>';
+    }
+  }
+
+  async function loadData() {
+    const container = document.getElementById('tableContainer');
+    container.innerHTML = '<div class="loading">Memuat data...</div>';
+    try {
+      const response = await fetch(`${SB_URL}/rest/v1/access_logs?select=*&order=created_at.desc`, {
+        headers: {
+          'apikey': SB_KEY,
+          'Authorization': `Bearer ${SB_KEY}`
+        }
+      });
+      if (!response.ok) throw new Error(await response.text());
+      const data = await response.json();
+      renderTable(data);
+    } catch (err) {
+      container.innerHTML = `<p style="color:red">Gagal memuat data: ${err.message}</p>`;
+    }
+  }
+
+  function renderTable(rows) {
+    if (!rows.length) {
+      document.getElementById('tableContainer').innerHTML = '<p>Belum ada data akses.</p>';
+      return;
+    }
+    let html = '<table><thead><tr><th>Tanggal & Waktu</th><th>Perangkat & Browser (User Agent)</th><th>Layar (px)</th></tr></thead><tbody>';
+    for (let row of rows) {
+      const date = new Date(row.created_at).toLocaleString('id-ID');
+      const screenInfo = `${row.screen_width} x ${row.screen_height}`;
+      html += `<tr>
+        <td>${date}</td>
+        <td style="word-break:break-word">${escapeHtml(row.user_agent)}</td>
+        <td>${screenInfo}</td>
+      </tr>`;
+    }
+    html += '</tbody></table>';
+    document.getElementById('tableContainer').innerHTML = html;
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+
+  async function clearAll() {
+    if (!confirm('Hapus semua data akses? Tindakan ini tidak dapat dibatalkan.')) return;
+    try {
+      const response = await fetch(`${SB_URL}/rest/v1/access_logs`, {
+        method: 'DELETE',
+        headers: {
+          'apikey': SB_KEY,
+          'Authorization': `Bearer ${SB_KEY}`
+        }
+      });
+      if (!response.ok) throw new Error(await response.text());
+      alert('Semua data berhasil dihapus');
+      loadData();
+    } catch (err) {
+      alert('Gagal menghapus: ' + err.message);
+    }
+  }
+
+  function exportTxt() {
+    const rows = document.querySelectorAll('#tableContainer table tbody tr');
+    if (!rows.length) {
+      alert('Tidak ada data untuk diekspor');
+      return;
+    }
+    let content = "Tanggal & Waktu\tPerangkat & Browser (User Agent)\tLayar (px)\n";
+    for (let row of rows) {
+      const cells = row.querySelectorAll('td');
+      const date = cells[0].innerText;
+      const ua = cells[1].innerText;
+      const screen = cells[2].innerText;
+      content += `${date}\t${ua}\t${screen}\n`;
+    }
+    const blob = new Blob([content], {type: 'text/plain'});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `access_log_${new Date().toISOString().slice(0,19)}.txt`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
+  // Inisialisasi
+  const savedAuth = localStorage.getItem('monitor_auth');
+  if (savedAuth === 'true') {
+    authenticated = true;
+    loadData();
+  } else {
+    checkAuth();
+  }
+
+  document.getElementById('refreshBtn').addEventListener('click', loadData);
+  document.getElementById('clearBtn').addEventListener('click', clearAll);
+  document.getElementById('exportBtn').addEventListener('click', exportTxt);
+</script>
+</body>
+</html>
